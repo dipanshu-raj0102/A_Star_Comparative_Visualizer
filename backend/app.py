@@ -4,7 +4,7 @@ from maze import generate_maze
 from algorithms.astar import astar_search
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*")
 
 @app.route('/health', methods=['GET'])
 def health():
