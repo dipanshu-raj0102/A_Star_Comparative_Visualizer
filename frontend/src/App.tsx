@@ -56,9 +56,14 @@ function App() {
   }, [speedMultiplier, engine]);
 
   useEffect(() => {
-    axios.get(`${API_URL}/health`)
-      .then(res => setHealth('Online'))
-      .catch(() => setHealth('Offline'));
+    const checkHealth = () => {
+      axios.get(`${API_URL}/health`, { timeout: 5000 })
+        .then(() => setHealth('Online'))
+        .catch(() => setHealth('Offline'));
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleGenerateAndSolve = async () => {
