@@ -37,7 +37,7 @@ const Legend = () => (
 );
 
 function App() {
-  const [health, setHealth] = useState<string>('Offline');
+  const [health, setHealth] = useState<string>('Checking...');
   const [maze, setMaze] = useState<Maze | null>(null);
   const [results, setResults] = useState<SolveResults | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,6 +82,7 @@ function App() {
       });
       const newMaze = genRes.data;
       setMaze(newMaze);
+      setHealth('Online'); // backend is clearly up if this succeeded
 
       // 2. Auto-Solve immediately
       const solveRes = await axios.post(`${API_URL}/solve`, {
@@ -106,7 +107,7 @@ function App() {
         <div className="header-title">
           <h1>A* Comparative Visualizer</h1>
         </div>
-        <div className={`status ${health.toLowerCase()}`}>
+        <div className={`status ${health === 'Online' ? 'online' : health === 'Checking...' ? 'checking' : 'offline'}`}>
           <span className="status-dot"></span>
           Backend: {health}
         </div>
