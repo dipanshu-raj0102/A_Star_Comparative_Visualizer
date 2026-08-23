@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Play, Pause, SkipForward, SkipBack, RotateCcw } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import GridVisualizer from './components/GridVisualizer';
 import { useAnimationEngine } from './hooks/useAnimationEngine';
 
@@ -225,6 +226,7 @@ function App() {
           </div>
         )}
       </div>
+      <SpeedInsights />
     </div>
   );
 }
