@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: astar-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    healthCheckPath: /health
