@@ -11,6 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.6.8",
     "lucide-react": "^0.373.0",
