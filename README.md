@@ -2,7 +2,7 @@
 
 > An interactive web application that runs **four pathfinding algorithms simultaneously** and lets you watch them explore a maze step by step — comparing heuristics side-by-side in real time.
 
-![A* Comparative Visualizer Preview](./assets/preview.jpg)
+![A* Comparative Visualizer Preview](./assets/preview.png)
 
 🔗 **Live Demo:** [a-star-comparative-visualizer.vercel.app](https://a-star-comparative-visualizer.vercel.app)
 
