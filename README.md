@@ -157,7 +157,3 @@ $$f(n) = g(n) + h(n)$$
 The algorithm always expands the node with the lowest f(n) first. A better heuristic means fewer nodes explored and faster pathfinding — which is exactly what this visualizer demonstrates.
 
 ---
-
-## License
-
-MIT
