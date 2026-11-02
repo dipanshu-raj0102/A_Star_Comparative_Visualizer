@@ -6,87 +6,95 @@ export const useAnimationEngine = (initialSpeedMs: number = 25) => {
   const [speedMs, setSpeedMs] = useState(initialSpeedMs);
   const [maxSteps, setMaxSteps] = useState(0);
 
-  const requestRef = useRef<number>();
-  const lastTimeRef = useRef<number>();
+  const requestRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number | null>(null);
+  const isPlayingRef = useRef(false);
 
   const animate = useCallback((time: number) => {
-    if (lastTimeRef.current !== undefined) {
+    if (!isPlayingRef.current || maxSteps <= 0) return;
+
+    if (lastTimeRef.current === null) {
+      lastTimeRef.current = time;
+    } else {
       const deltaTime = time - lastTimeRef.current;
-      
-      // Calculate how many frames to advance based on deltaTime and speedMs
-      // This ensures smooth playback even if the browser drops frames
-      if (deltaTime >= speedMs) {
-        // If speed is extremely fast (e.g., 1ms), we might need to jump multiple steps
-        const stepsToAdvance = Math.max(1, Math.floor(deltaTime / Math.max(1, speedMs)));
-        
-        setCurrentStep(prevStep => {
+      const frameDuration = Math.max(1, speedMs);
+
+      // Advance by whole frames so slow devices do not make playback drift.
+      if (deltaTime >= frameDuration) {
+        const stepsToAdvance = Math.max(1, Math.floor(deltaTime / frameDuration));
+        lastTimeRef.current = time - (deltaTime % frameDuration);
+
+        setCurrentStep((prevStep) => {
           const nextStep = prevStep + stepsToAdvance;
           if (nextStep >= maxSteps - 1) {
+            isPlayingRef.current = false;
             setIsPlaying(false);
             return Math.max(0, maxSteps - 1);
           }
           return nextStep;
         });
-        
-        // Update last time by the exact chunk of time consumed
-        lastTimeRef.current = time - (deltaTime % Math.max(1, speedMs));
       }
-    } else {
-      lastTimeRef.current = time;
     }
-    
-    if (isPlaying) {
+
+    if (isPlayingRef.current) {
       requestRef.current = requestAnimationFrame(animate);
     }
-  }, [maxSteps, speedMs, isPlaying]);
+  }, [maxSteps, speedMs]);
 
   useEffect(() => {
+    isPlayingRef.current = isPlaying;
+
     if (isPlaying && maxSteps > 0) {
       if (currentStep >= maxSteps - 1) {
+        isPlayingRef.current = false;
         setIsPlaying(false);
       } else {
+        lastTimeRef.current = null;
         requestRef.current = requestAnimationFrame(animate);
       }
     }
     
     return () => {
-      if (requestRef.current) {
+      if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
       }
-      lastTimeRef.current = undefined;
+      lastTimeRef.current = null;
     };
-  }, [isPlaying, animate, currentStep, maxSteps]);
+  }, [isPlaying, animate, maxSteps]);
 
   // Controls
-  const play = () => {
+  const play = useCallback(() => {
     if (maxSteps === 0) return;
     if (currentStep >= maxSteps - 1) {
       setCurrentStep(0);
     }
+    isPlayingRef.current = true;
     setIsPlaying(true);
-  };
+  }, [currentStep, maxSteps]);
   
-  const pause = () => {
+  const pause = useCallback(() => {
+    isPlayingRef.current = false;
     setIsPlaying(false);
-    lastTimeRef.current = undefined;
-  };
+    lastTimeRef.current = null;
+  }, []);
   
-  const togglePlay = () => isPlaying ? pause() : play();
+  const togglePlay = useCallback(() => isPlaying ? pause() : play(), [isPlaying, pause, play]);
   
-  const stepForward = () => {
+  const stepForward = useCallback(() => {
     pause();
     setCurrentStep(p => Math.min(p + 1, maxSteps > 0 ? maxSteps - 1 : 0));
-  };
+  }, [maxSteps, pause]);
   
-  const stepBackward = () => {
+  const stepBackward = useCallback(() => {
     pause();
     setCurrentStep(p => Math.max(p - 1, 0));
-  };
+  }, [pause]);
   
-  const reset = () => {
+  const reset = useCallback(() => {
     pause();
     setCurrentStep(0);
-  };
+  }, [pause]);
 
   return {
     currentStep,

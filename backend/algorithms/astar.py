@@ -1,4 +1,5 @@
 import heapq
+import itertools
 import time
 from .heuristics import HEURISTICS
 
@@ -13,18 +14,29 @@ def reconstruct_path(came_from, current):
 def astar_search(grid, start, goal, heuristic_name):
     rows = len(grid)
     cols = len(grid[0]) if rows > 0 else 0
+
+    if not rows or not cols or any(len(row) != cols for row in grid):
+        raise ValueError('grid must be a non-empty rectangle')
     
     start_tuple = tuple(start)
     goal_tuple = tuple(goal)
+
+    for point_name, point in [('start', start_tuple), ('goal', goal_tuple)]:
+        if len(point) != 2 or not (0 <= point[0] < rows and 0 <= point[1] < cols):
+            raise ValueError(f'{point_name} must be inside the grid')
+        if grid[point[0]][point[1]] == 1:
+            raise ValueError(f'{point_name} cannot be a wall')
     
     heuristic = HEURISTICS.get(heuristic_name, HEURISTICS['zero'])
     
     frontier = []
-    heapq.heappush(frontier, (0, start_tuple))
+    sequence = itertools.count()
+    start_h = heuristic(start_tuple, goal_tuple)
+    heapq.heappush(frontier, (start_h, start_h, next(sequence), start_tuple))
     
     came_from = {}
     g_score = {start_tuple: 0}
-    f_score = {start_tuple: heuristic(start_tuple, goal_tuple)}
+    f_score = {start_tuple: start_h}
     
     visited_set = set()
     frontier_set = {start_tuple}
@@ -34,14 +46,20 @@ def astar_search(grid, start, goal, heuristic_name):
     start_time = time.perf_counter()
     
     while frontier:
-        current_f, current = heapq.heappop(frontier)
+        current_f, _, _, current = heapq.heappop(frontier)
+
+        # A node may be inserted more than once when a better route is found.
+        # Ignore stale heap entries instead of letting an old priority dictate
+        # the visualized search order.
+        if current_f > f_score.get(current, float('inf')):
+            continue
         frontier_set.discard(current)
         
         # Record trace
         trace.append({
             'current': current,
-            'frontier': list(frontier_set),
-            'visited': list(visited_set),
+            'frontier': sorted(frontier_set),
+            'visited': sorted(visited_set),
             'g': g_score[current],
             'h': current_f - g_score[current],
             'f': current_f,
@@ -79,10 +97,11 @@ def astar_search(grid, start, goal, heuristic_name):
                 g_score[neighbor] = tentative_g_score
                 h_val = heuristic(neighbor, goal_tuple)
                 f_score[neighbor] = tentative_g_score + h_val
-                
-                if neighbor not in frontier_set:
-                    heapq.heappush(frontier, (f_score[neighbor], neighbor))
-                    frontier_set.add(neighbor)
+
+                # Always push an improved score. The stale-entry guard above
+                # makes this both correct and inexpensive.
+                heapq.heappush(frontier, (f_score[neighbor], h_val, next(sequence), neighbor))
+                frontier_set.add(neighbor)
                     
     end_time = time.perf_counter()
     return {

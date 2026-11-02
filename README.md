@@ -23,11 +23,14 @@ The A* algorithm finds the shortest path between two points on a grid. Its effic
 
 ## Features
 
-- ⚡ **Side-by-side comparison** of 4 algorithms on the same maze
-- 🎬 **Step-by-step animation** with Play / Pause / Step Forward / Step Back controls
-- 🎛️ **Configurable** grid size (10×10 to 40×40), obstacle density, and random seed
+- ⚡ **Side-by-side comparison** of 4 algorithms on the same board
+- 🧩 **Six board patterns**: seeded noise, rooms, spirals, stripes, checkerboard, and open field
+- 🎬 **Step-by-step playback** with Play / Pause / Step Forward / Step Back controls and keyboard shortcuts
+- 🖌️ **Interactive board editor** — paint walls, erase cells, and move the start or goal node on every grid
+- 🎛️ **Configurable** grid size (10×10 to 40×40), obstacle density, pattern, and random seed
 - 📊 **Live stats** per algorithm: nodes expanded, frontier size, g(n), h(n), f(n), execution time, path length
-- 🌐 **Canvas rendering** with DPI-aware drawing, glowing path lines, and rounded cells
+- 🌗 **Persisted light and dark themes** with a responsive, accessible interface
+- 🌐 **Canvas rendering** with DPI-aware drawing, resize support, glowing path lines, and rounded cells
 - 🔢 **f(n) cost overlay** displayed on each visited cell
 
 ---
@@ -59,7 +62,7 @@ A_Star_Comparative_Visualizer/
 │   │   ├── App.tsx                        # Main app + controls
 │   │   ├── components/GridVisualizer.tsx  # Canvas grid renderer
 │   │   ├── hooks/useAnimationEngine.ts    # Playback engine
-│   │   └── index.css                      # Dark glassmorphism theme
+│   │   └── index.css                      # Responsive light/dark visual system
 │   ├── vercel.json
 │   ├── nginx.conf
 │   └── Dockerfile
@@ -118,9 +121,14 @@ docker-compose up --build
   "rows": 20,
   "cols": 20,
   "density": 0.25,
-  "seed": 42
+  "seed": 42,
+  "pattern": "rooms"
 }
 ```
+
+Supported patterns are `random`, `rooms`, `spiral`, `stripes`, `checkerboard`, and
+`clear`. Generated boards carve a reproducible route so every pattern is ready for
+comparison; the editor can then be used to create an intentionally blocked board.
 
 ### `/solve` Request
 ```json
